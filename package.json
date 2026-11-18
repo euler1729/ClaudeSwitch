@@ -7,7 +7,7 @@
     "color": "#D77757",
     "theme": "dark"
   },
-  "version": "0.2.2",
+  "version": "0.2.3",
   "publisher": "claudeswitch",
   "repository": {
     "type": "git",
@@ -264,7 +264,7 @@
         },
         "claudeswitch.switchThreshold": {
           "type": "number",
-          "default": 95,
+          "default": 90,
           "minimum": 50,
           "maximum": 100,
           "order": 2,

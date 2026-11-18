@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.3 — 2026-11-18
+
+### Changed
+
+- ClaudeSwitch now switches away from an account at 90% of its 5-hour or weekly limit, instead of 95%. Usage is checked every 2 minutes, so the extra margin means the switch usually happens before Claude Code hits the limit. If you've set `claudeswitch.switchThreshold` yourself, your value is kept.
+
+### Added
+
+- A one-line command to install or update ClaudeSwitch from a terminal on macOS or Linux: `curl -fsSL https://raw.githubusercontent.com/euler1729/ClaudeSwitch/main/install.sh | bash`. It checks the download against the release's SHA-256 checksum.
+
 ## 0.2.2 — 2026-11-18
 
 ### Security

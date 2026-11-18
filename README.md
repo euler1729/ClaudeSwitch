@@ -109,7 +109,7 @@ Each account's weekly allowance resets on its own schedule, and whatever is unus
 
 | Strategy | Behavior |
 |---|---|
-| ⭐ **Efficient** (default) | Uses the account whose weekly limit resets soonest, because its leftover allowance expires first. Stays on an account until it reaches `switchThreshold` (95%). Switches earlier only when another account has at least 25 points of weekly allowance that will expire within 24 hours. |
+| ⭐ **Efficient** (default) | Uses the account whose weekly limit resets soonest, because its leftover allowance expires first. Stays on an account until it reaches `switchThreshold` (90%). Switches earlier only when another account has at least 25 points of weekly allowance that will expire within 24 hours. |
 | ⚖️ **Balanced** | Keeps every account at a similar weekly usage level. Switches when the active account is 20 or more points ahead of the least-used one. |
 | 🔢 **Sequential** | Uses accounts in the order listed. Moves to the next when one is exhausted, and back to a higher one once it resets. |
 | ✋ **Manual** | Never switches on its own. When the active account is exhausted, it tells you which account to switch to. |
@@ -139,7 +139,7 @@ Every strategy follows the same rules:
 |---|---|---|
 | `claudeswitch.autoSwitch` | `true` | Switch automatically. |
 | `claudeswitch.strategy` | `efficient` | `efficient`, `balanced`, `sequential` or `manual`. |
-| `claudeswitch.switchThreshold` | `95` | Usage percentage at which an account counts as exhausted. |
+| `claudeswitch.switchThreshold` | `90` | Usage percentage at which an account counts as exhausted. |
 | `claudeswitch.warnThreshold` | `80` | Usage percentage at which the status bar turns yellow. |
 | `claudeswitch.proactiveSwitching` | `true` | Efficient strategy: switch early to use allowance that is about to expire. |
 | `claudeswitch.proactiveHorizonHours` | `24` | Efficient strategy: how close to its reset another account must be for an early switch. |

@@ -22,7 +22,7 @@ export function readConfig(): Config {
   return {
     autoSwitch: c.get('autoSwitch', true),
     strategy: c.get<StrategyName>('strategy', 'efficient'),
-    switchThreshold: Math.min(100, num('switchThreshold', 95, 50)),
+    switchThreshold: Math.min(100, num('switchThreshold', 90, 50)),
     warnThreshold: num('warnThreshold', 80, 0),
     proactiveSwitching: c.get('proactiveSwitching', true),
     proactiveHorizonHours: num('proactiveHorizonHours', 24, 1),
