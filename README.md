@@ -1,60 +1,128 @@
-<p align="center"><img src="media/icon.png" width="112" alt="ClaudeSwitch logo"></p>
+<p align="center">
+  <img src="media/icon.png" width="128" alt="ClaudeSwitch logo">
+</p>
 
-# ClaudeSwitch — Claude Account Switcher for VS Code
+<h1 align="center">ClaudeSwitch</h1>
 
-ClaudeSwitch manages several Claude Code accounts. When the active account hits its usage limit, ClaudeSwitch moves Claude Code to another account automatically. It also chooses which account to use so that as little of each account's allowance as possible goes unused.
+<p align="center">
+  <b>Hit a Claude Code usage limit? Keep working on your next account.</b><br>
+  ClaudeSwitch rotates Claude Code between your Claude accounts automatically,<br>
+  and picks the account whose unused allowance would otherwise go to waste.
+</p>
+
+<p align="center">
+  <a href="https://github.com/euler1729/ClaudeSwitch/releases/latest"><img src="https://img.shields.io/github/v/release/euler1729/ClaudeSwitch?color=D77757&label=release" alt="Latest release"></a>
+  <a href="https://github.com/euler1729/ClaudeSwitch/actions/workflows/ci.yml"><img src="https://github.com/euler1729/ClaudeSwitch/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <img src="https://img.shields.io/badge/VS%20Code-1.90%2B-007ACC?logo=visualstudiocode&logoColor=white" alt="VS Code 1.90+">
+  <img src="https://img.shields.io/badge/tested%20on-macOS%20%7C%20Linux-555" alt="Tested on macOS and Linux">
+</p>
+
+<p align="center">
+  <a href="https://github.com/euler1729/ClaudeSwitch/releases/latest"><b>Download</b></a> ·
+  <a href="#quick-start">Quick start</a> ·
+  <a href="#choosing-an-account">Strategies</a> ·
+  <a href="#settings">Settings</a> ·
+  <a href="https://github.com/euler1729/ClaudeSwitch/blob/main/CHANGELOG.md">Changelog</a>
+</p>
+
+<br>
+
+```text
+⇄ alice · 5h 42% · wk 31%          ← your status bar: active account, 5-hour and weekly usage
+```
+
+## Why ClaudeSwitch
+
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <h3>🔄 Switches for you</h3>
+      Moves Claude Code to another account when the active one reaches its 5-hour or weekly limit, or the moment a limit error shows up in a session.
+    </td>
+    <td width="50%" valign="top">
+      <h3>🧠 Wastes nothing</h3>
+      Uses the account whose weekly allowance resets soonest, so leftover capacity is spent before it expires instead of after.
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <h3>⚡ No restarts</h3>
+      Running Claude Code sessions pick up the new account on their next request. Nothing to reload, nothing to log out of.
+    </td>
+    <td width="50%" valign="top">
+      <h3>🔐 Browser sign-in</h3>
+      Add accounts through the normal Claude sign-in page. Adding one never changes the account Claude Code is using.
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <h3>📊 Usage at a glance</h3>
+      Status bar and sidebar show every account's 5-hour and weekly usage with reset times. One click switches, and every automatic switch can be undone.
+    </td>
+    <td width="50%" valign="top">
+      <h3>🪟 Many windows, one brain</h3>
+      With several VS Code windows open, one monitors usage and switches. If it closes, another takes over.
+    </td>
+  </tr>
+</table>
+
+## Quick start
+
+1. **Install.** Download `claudeswitch-<version>.vsix` from the [latest release](https://github.com/euler1729/ClaudeSwitch/releases/latest). In VS Code, open the Extensions view, click **⋯** → **Install from VSIX…**, and pick the file. Or run:
+   ```sh
+   code --install-extension claudeswitch-<version>.vsix
+   ```
+2. **Add your accounts.** Open **ClaudeSwitch** in the Activity Bar and click **Add Claude Account**. Sign in on the page that opens in your browser. A small box in VS Code waits and closes by itself when you're done.
+3. **Repeat** for each account. That's it. ClaudeSwitch takes it from here.
+
+> **Already signed in to Claude Code?** Click **Add that login** in the empty view, or run **ClaudeSwitch: Add Current Claude Code Login**, to save that account without the browser.
+
+> **Adding a second account while your browser is signed in to claude.ai?** The sign-in page uses whichever account the browser is signed in to. Click the copy button in the waiting box and paste the link into a private window, or sign out of claude.ai first. If you sign in to an account that's already added, ClaudeSwitch says so and renews its saved login.
+
+> **Remote, WSL, Codespaces or browser-based VS Code?** If the browser can't reach VS Code's machine, click the key button in the waiting box. The sign-in page then shows a code to paste into the box. ClaudeSwitch switches to this mode by itself when it can't forward the listener's port.
 
 ## How it works
 
-- **Adding accounts.** Click **Add Claude Account**, and the Claude sign-in page opens in your browser. When you finish signing in, the browser returns to a temporary listener that ClaudeSwitch runs on `127.0.0.1`, and the account is saved. This is the same sign-in that `claude auth login` uses, but no terminal is needed. Adding an account doesn't change which account Claude Code is using.
-- **Switching.** Claude Code keeps its login in `~/.claude/.credentials.json` (on macOS, in the Keychain). ClaudeSwitch keeps a copy of each account's login in VS Code's secret storage, which is your OS keychain. To switch, it writes the chosen login into Claude Code's credential store and updates the account shown in `~/.claude.json`. Claude Code reloads its credentials when that store changes, so running sessions use the new account from their next request. You don't need to restart anything.
-- **Usage.** ClaudeSwitch reads the same usage numbers as Claude Code's `/usage`: the 5-hour session window and the weekly windows, with their reset times. It checks the active account every 2 minutes and the other accounts every 15 minutes. It also uses the usage data Claude Code caches itself.
-- **Instant detection.** ClaudeSwitch watches Claude Code's session transcripts for messages such as "You've hit your session limit". When one appears, it switches within seconds instead of waiting for the next check.
-- **Keeping logins valid.** Claude Code rotates the active account's tokens, and ClaudeSwitch saves the latest copy whenever that happens. For inactive accounts, ClaudeSwitch refreshes the tokens itself, so they stay signed in and their usage can still be checked. It never refreshes the active account's token, because Claude Code manages that one.
-- **Several windows.** With more than one VS Code window open, one window monitors usage and switches accounts. If that window closes, another one takes over.
+| Step | What happens |
+|---|---|
+| **1 · Sign in** | The browser returns to a temporary listener on `127.0.0.1`, the same sign-in `claude auth login` uses, with no terminal needed. Each login is saved in VS Code's secret storage, which is your OS keychain. |
+| **2 · Watch** | ClaudeSwitch reads the same numbers as Claude Code's `/usage`: the active account every 2 minutes, the others every 15, plus the usage Claude Code caches itself. It also watches session transcripts for messages like "You've hit your session limit" and reacts within seconds. |
+| **3 · Switch** | It writes the chosen login into Claude Code's credential store (`~/.claude/.credentials.json`, or the Keychain on macOS) and updates the account shown in `~/.claude.json`. Claude Code reloads its credentials when that store changes. |
+| **4 · Stay signed in** | Claude Code rotates the active account's tokens, and ClaudeSwitch saves each new copy. It refreshes inactive accounts' tokens itself so they stay valid. It never refreshes the active account's token, because Claude Code manages that one. |
 
-## Choosing an account (strategies)
+**Privacy:** ClaudeSwitch only talks to Anthropic's own sign-in and usage endpoints, and to its own sign-in listener on your machine. Tokens never leave your computer otherwise. See [SECURITY.md](SECURITY.md).
 
-Each account's weekly allowance resets on its own schedule, and whatever is unused at reset is lost. Switching also has a cost. The prompt cache belongs to one account, so the first request after a switch sends the whole conversation again without the cache, and that uses more of the limit.
+## Choosing an account
+
+Each account's weekly allowance resets on its own schedule, and whatever is unused at reset is lost. Switching has a cost too: the prompt cache belongs to one account, so the first request after a switch re-sends the whole conversation without it. The strategies balance the two.
 
 | Strategy | Behavior |
 |---|---|
-| **Efficient** (default) | Uses the account whose weekly limit resets soonest, because its leftover allowance expires first. It stays on an account until that account reaches `switchThreshold` (95%). It switches earlier only when another account has at least 25 points of weekly allowance that will expire within 24 hours. |
-| **Balanced** | Keeps every account at a similar weekly usage level. It switches when the active account is 20 or more points ahead of the least-used one. |
-| **Sequential** | Uses accounts in the order listed. When one is exhausted, it moves to the next. When a higher account resets, it moves back to it. |
-| **Manual** | Never switches on its own. When the active account is exhausted, it shows which account to switch to. |
+| ⭐ **Efficient** (default) | Uses the account whose weekly limit resets soonest, because its leftover allowance expires first. Stays on an account until it reaches `switchThreshold` (95%). Switches earlier only when another account has at least 25 points of weekly allowance that will expire within 24 hours. |
+| ⚖️ **Balanced** | Keeps every account at a similar weekly usage level. Switches when the active account is 20 or more points ahead of the least-used one. |
+| 🔢 **Sequential** | Uses accounts in the order listed. Moves to the next when one is exhausted, and back to a higher one once it resets. |
+| ✋ **Manual** | Never switches on its own. When the active account is exhausted, it tells you which account to switch to. |
 
-All strategies follow the same rules:
-- An exhausted account is never chosen. An account that is excluded from rotation or needs you to log in again is never chosen automatically.
-- An account with less than 10 points of room left is only chosen when no other account is available.
-- Apart from switches caused by an exhausted account, ClaudeSwitch waits at least `minMinutesBetweenSwitches` (30) between switches.
-- When every account is exhausted, ClaudeSwitch tells you once when the next account becomes available. It switches to that account when its limit resets.
+Every strategy follows the same rules:
 
-## Setup
-
-1. Install the extension:
-   ```sh
-   npm install && npm run package
-   code --install-extension claudeswitch-0.2.0.vsix
-   ```
-2. Open the **ClaudeSwitch** view in the Activity Bar and click **Add Claude Account**.
-3. Sign in in the browser window that opens. A small box in VS Code waits for you, and it closes by itself when sign-in is done. Repeat for each account.
-
-If Claude Code is already signed in, **Add that login** (in the empty view) or **ClaudeSwitch: Add Current Claude Code Login** saves that account without a browser.
-
-**Adding a second account when your browser is already signed in to claude.ai:** the sign-in page uses whichever account the browser is signed in to. To add a different one, click the copy button in the waiting box and paste the link into a private window. You can also sign out of claude.ai in the browser first. If you sign in to an account that's already added, ClaudeSwitch tells you, and it renews that account's saved login.
-
-**Remote, WSL, Codespaces or browser-based VS Code:** if the browser can't reach VS Code's machine, click the key button in the waiting box. The sign-in page then shows a code, which you paste into the box. ClaudeSwitch switches to this mode automatically when it can't forward the listener's port.
+- An exhausted account is never chosen. An account that's excluded from rotation, or needs you to sign in again, is never chosen automatically.
+- An account with less than 10 points of room left is only chosen when nothing else is available.
+- Apart from switches forced by an exhausted account, ClaudeSwitch waits at least `minMinutesBetweenSwitches` (30) between switches.
+- When every account is exhausted, you're told once when the next one becomes available, and ClaudeSwitch switches to it when its limit resets.
 
 ## Using it
 
-- **Status bar.** Shows the active account with its usage, for example `⇄ alice · 5h 42% · wk 31%`. It turns yellow at `warnThreshold` and red when the account is exhausted. Hover over it to see a table of all accounts. Click it to switch.
-- **Accounts view.** Lists each account with its usage windows, reset times, and any login problems. Right-click an account to rename it, exclude it from rotation, change its order, or remove it.
-- **Commands.** `ClaudeSwitch: Switch Claude Account…`, `Switch to Best Available Account`, `Refresh Usage`, `Toggle Automatic Switching`, `Show Log`.
-- **After an automatic switch,** a notification names the new account, gives the reason, and offers **Undo**.
-- **If an account's saved login stops working** (for example, after you sign out of it everywhere), it's marked **Sign in again**. Click it to sign in through the browser again.
+- **Status bar:** the active account and its usage. It turns yellow at `warnThreshold` and red when the account is exhausted. Hover for a table of all accounts; click to switch.
+- **Accounts view:** each account's usage windows, reset times and any login problems. Right-click to rename, exclude from rotation, reorder or remove.
+- **Commands:** `Switch Claude Account…`, `Switch to Best Available Account`, `Refresh Usage`, `Toggle Automatic Switching` and `Show Log`, all under **ClaudeSwitch:** in the Command Palette.
+- **After an automatic switch,** a notification names the new account and the reason, with **Undo**.
+- **If a saved login stops working** (for example, after you sign out of that account everywhere), the account is marked **Sign in again**. Click it to sign in through the browser.
 
 ## Settings
+
+<details>
+<summary><b>All settings</b> (search for <code>claudeswitch</code> in VS Code's Settings)</summary>
+<br>
 
 | Setting | Default | |
 |---|---|---|
@@ -75,13 +143,16 @@ If Claude Code is already signed in, **Add that login** (in the empty view) or *
 | `claudeswitch.notifyOnSwitch` | `true` | Show a notification on each switch. |
 | `claudeswitch.claudeConfigDir` | `""` | Claude Code's config folder. Defaults to `CLAUDE_CONFIG_DIR`, or `~/.claude` if that isn't set. |
 
-## Limitations
+</details>
 
-- ClaudeSwitch works with Claude subscription logins (Pro, Max, Team or Enterprise). It does not handle API keys.
-- It relies on Claude Code's credential files and its usage endpoint, which aren't public APIs. A future Claude Code release could change them. If switching stops working, check **ClaudeSwitch: Show Log**.
-- If a running Claude Code process rewrites `~/.claude.json` at the moment ClaudeSwitch switches, `/status` may briefly show the previous email. Requests still use the new account, because they authenticate with the credential store.
-- Usage on claude.ai counts toward the same limits. ClaudeSwitch notices that usage at its next check of that account.
-- Each account is subject to its own plan's terms. Only add accounts you are entitled to use.
+## Good to know
+
+- **Subscriptions only.** ClaudeSwitch works with Claude Pro, Max, Team and Enterprise logins. It doesn't handle API keys.
+- **Unofficial interfaces.** It relies on Claude Code's credential store and usage endpoint, which aren't public APIs, so a future Claude Code release could change them. If switching stops working, check **ClaudeSwitch: Show Log**.
+- **macOS login size.** On macOS, a login larger than about 2 KB (for example, one carrying several MCP servers' tokens) can't be written to the Keychain this way. ClaudeSwitch then refuses that switch and leaves your current login untouched.
+- **`/status` may lag.** If a running Claude Code process rewrites `~/.claude.json` at the moment of a switch, `/status` can briefly show the previous email. Requests still use the new account.
+- **claude.ai counts too.** Usage on claude.ai counts toward the same limits; ClaudeSwitch notices it at its next check of that account.
+- **Play fair.** Each account is subject to its own plan's terms. Only add accounts you're entitled to use.
 
 ## Development
 
@@ -89,17 +160,25 @@ If Claude Code is already signed in, **Add that login** (in the empty view) or *
 npm install
 npm test          # compiles, then runs unit and integration tests (Node's built-in runner)
 npm run watch     # recompile on change; press F5 in VS Code to launch an Extension Development Host
-npm run package   # builds claudeswitch-0.2.0.vsix
+npm run package   # builds claudeswitch-<version>.vsix
 ```
 
-The integration test runs the real controller against a temporary Claude config folder and a fake API server. That includes the browser sign-in, with a simulated browser visiting the callback. It never touches your `~/.claude`.
+The integration test runs the real controller against a temporary Claude config folder and a fake API server, including the browser sign-in with a simulated browser visiting the callback. It never touches your `~/.claude`; on macOS it uses a throwaway Keychain item instead of your real login. CI runs the tests on both Linux and macOS.
 
-### Releasing
+<details>
+<summary><b>Releasing</b></summary>
+<br>
 
 1. Update `version` in `package.json`, and add a matching `## <version>` section at the top of `CHANGELOG.md`.
 2. Commit, then tag and push: `git tag v<version> && git push origin main v<version>`.
 
 The Release workflow runs the tests, builds the `.vsix`, and publishes a GitHub release. The notes come from that version's CHANGELOG section, and the release includes install steps and SHA-256 checksums.
+
+</details>
+
+<details>
+<summary><b>Code map</b></summary>
+<br>
 
 | File | Role |
 |---|---|
@@ -112,3 +191,5 @@ The Release workflow runs the tests, builds the `.vsix`, and publishes a GitHub 
 | `src/signIn.ts` | Shows the box that waits for sign-in, with reopen, copy-link and paste-a-code options. |
 | `src/transcripts.ts` | Detects limit errors in session transcripts. |
 | `src/ui.ts`, `src/extension.ts` | Status bar, accounts view and commands. |
+
+</details>

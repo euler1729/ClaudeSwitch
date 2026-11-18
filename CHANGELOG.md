@@ -8,6 +8,11 @@
 - Build tooling updated to clear the known vulnerabilities that have fixes (`@vscode/vsce` 4, `minimatch` 11). The extension itself has no runtime dependencies.
 - Added a security policy, CodeQL scanning and Dependabot updates. Workflows now run with least-privilege permissions and pinned action versions.
 
+### Fixed
+
+- On macOS, switching to an account whose saved login is larger than about 2 KB (for example, one carrying several MCP servers' tokens) no longer corrupts Claude Code's Keychain entry. ClaudeSwitch now refuses that switch and leaves the current login unchanged.
+- The tests now also run on macOS in CI, against a throwaway Keychain.
+
 ## 0.2.1 — 2026-11-18
 
 First release. ClaudeSwitch moves Claude Code to another of your Claude accounts when the active one reaches its usage limit.
