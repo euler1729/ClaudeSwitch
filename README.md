@@ -18,12 +18,20 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/euler1729/ClaudeSwitch/releases/latest"><b>Download</b></a> ·
-  <a href="#quick-start">Quick start</a> ·
+  <a href="#quick-start"><b>Install</b></a> ·
+  <a href="https://github.com/euler1729/ClaudeSwitch/releases/latest">Releases</a> ·
   <a href="#choosing-an-account">Strategies</a> ·
   <a href="#settings">Settings</a> ·
   <a href="https://github.com/euler1729/ClaudeSwitch/blob/main/CHANGELOG.md">Changelog</a>
 </p>
+
+### Install or update
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/euler1729/ClaudeSwitch/main/install.sh | bash
+```
+
+<sub>One command for macOS and Linux. Run it again any time to update. Other ways to install are in the <a href="#quick-start">Quick start</a>.</sub>
 
 <br>
 
@@ -68,10 +76,13 @@
 
 ## Quick start
 
-1. **Install.** Download `claudeswitch-<version>.vsix` from the [latest release](https://github.com/euler1729/ClaudeSwitch/releases/latest). In VS Code, open the Extensions view, click **⋯** → **Install from VSIX…**, and pick the file. Or run:
+1. **Install.** Run this in a terminal on macOS or Linux:
    ```sh
-   code --install-extension claudeswitch-<version>.vsix
+   curl -fsSL https://raw.githubusercontent.com/euler1729/ClaudeSwitch/main/install.sh | bash
    ```
+   It downloads the latest release, checks it against the published SHA-256 checksum, and installs it into VS Code. **Run the same command again any time to update.** For VS Code Insiders or Cursor, end it with `| CODE=code-insiders bash` or `| CODE=cursor bash`.
+
+   <sub>Prefer to do it by hand? Download `claudeswitch-<version>.vsix` from the [latest release](https://github.com/euler1729/ClaudeSwitch/releases/latest), then in VS Code open the Extensions view, click **⋯** → **Install from VSIX…**, and pick the file.</sub>
 2. **Add your accounts.** Open **ClaudeSwitch** in the Activity Bar and click **Add Claude Account**. Sign in on the page that opens in your browser. A small box in VS Code waits and closes by itself when you're done.
 3. **Repeat** for each account. That's it. ClaudeSwitch takes it from here.
 

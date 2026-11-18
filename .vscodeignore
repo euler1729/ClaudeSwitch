@@ -10,3 +10,4 @@ package-lock.json
 media/icon.svg
 .github/**
 SECURITY.md
+install.sh

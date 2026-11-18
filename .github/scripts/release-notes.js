@@ -26,7 +26,15 @@ const file = `claudeswitch-${version}.vsix`;
 
 process.stdout.write(`${body}
 
-### Install
+### Install or update
+
+Run this in a terminal on macOS or Linux. It installs the latest release into VS Code, or updates the one you have:
+
+\`\`\`sh
+curl -fsSL https://raw.githubusercontent.com/euler1729/ClaudeSwitch/main/install.sh | bash
+\`\`\`
+
+Or by hand:
 
 1. Download **${file}** from the assets below.
 2. In VS Code, open the Extensions view, click **⋯**, choose **Install from VSIX…**, and pick the file. Or run \`code --install-extension ${file}\`.
