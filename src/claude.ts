@@ -55,16 +55,27 @@ export function resolvePaths(configDirSetting: string): ClaudePaths {
   };
 }
 
-function run(cmd: string, args: string[]): Promise<string> {
+/** Run a command without a shell; `input` is written to its stdin. Exported for tests. */
+export function run(cmd: string, args: string[], input?: string): Promise<string> {
   return new Promise((resolve, reject) => {
-    execFile(cmd, args, { timeout: 10_000, maxBuffer: 1024 * 1024 }, (err, stdout) => {
+    const child = execFile(cmd, args, { timeout: 10_000, maxBuffer: 1024 * 1024 }, (err, stdout) => {
       if (err) {
         reject(err);
       } else {
         resolve(stdout);
       }
     });
+    if (input !== undefined) {
+      child.stdin?.end(input);
+    }
   });
+}
+
+/** `security -i` command that stores the credentials, read from stdin. Exported for tests. */
+export function keychainWriteCommand(p: ClaudePaths, json: string): string {
+  const hex = Buffer.from(json, 'utf8').toString('hex');
+  // Account and service names are restricted to safe characters in resolvePaths.
+  return `add-generic-password -U -a "${p.keychainAccount}" -s "${p.keychainService}" -X "${hex}"\n`;
 }
 
 function parseBlob(text: string): CredentialsBlob | undefined {
@@ -102,8 +113,9 @@ export async function readCredentials(p: ClaudePaths): Promise<CredentialsBlob |
 export async function writeCredentials(p: ClaudePaths, blob: CredentialsBlob): Promise<void> {
   const json = JSON.stringify(blob);
   if (p.useKeychain) {
-    const hex = Buffer.from(json, 'utf8').toString('hex');
-    await run('security', ['add-generic-password', '-U', '-a', p.keychainAccount, '-s', p.keychainService, '-X', hex]);
+    // Send the command on stdin (as Claude Code does) so the secret never appears in the
+    // process list, where other local users could read it.
+    await run('security', ['-i'], keychainWriteCommand(p, json));
     // Keep any file copy in step so a stale file login can't win.
     if (fs.existsSync(p.credentialsFile)) {
       await writeFileAtomic(p.credentialsFile, json, 0o600);

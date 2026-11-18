@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.2 — 2026-11-18
+
+### Security
+
+- On macOS, credentials are written to the Keychain through standard input instead of command-line arguments, so other local users can't see them in the process list.
+- Build tooling updated to clear the known vulnerabilities that have fixes (`@vscode/vsce` 4, `minimatch` 11). The extension itself has no runtime dependencies.
+- Added a security policy, CodeQL scanning and Dependabot updates. Workflows now run with least-privilege permissions and pinned action versions.
+
 ## 0.2.1 — 2026-11-18
 
 First release. ClaudeSwitch moves Claude Code to another of your Claude accounts when the active one reaches its usage limit.
