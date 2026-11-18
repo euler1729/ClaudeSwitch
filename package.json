@@ -1,0 +1,373 @@
+{
+  "name": "claudeswitch",
+  "displayName": "ClaudeSwitch — Claude Account Switcher",
+  "description": "Automatically switches Claude Code accounts when one hits its usage limit, and spreads usage across accounts so no capacity goes to waste.",
+  "version": "0.2.0",
+  "publisher": "claudeswitch",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/euler1729/ClaudeSwitch.git"
+  },
+  "private": true,
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "claude",
+    "claude code",
+    "account",
+    "usage limit",
+    "switcher"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "claudeswitch.addCurrentAccount",
+        "title": "Add Current Claude Code Login",
+        "category": "ClaudeSwitch",
+        "icon": "$(person-add)"
+      },
+      {
+        "command": "claudeswitch.addAccount",
+        "title": "Add Claude Account…",
+        "category": "ClaudeSwitch",
+        "icon": "$(add)"
+      },
+      {
+        "command": "claudeswitch.signInAgain",
+        "title": "Sign In Again…",
+        "category": "ClaudeSwitch",
+        "icon": "$(sign-in)"
+      },
+      {
+        "command": "claudeswitch.switchAccount",
+        "title": "Switch Claude Account…",
+        "category": "ClaudeSwitch",
+        "icon": "$(arrow-swap)"
+      },
+      {
+        "command": "claudeswitch.switchToBest",
+        "title": "Switch to Best Available Account",
+        "category": "ClaudeSwitch",
+        "icon": "$(sparkle)"
+      },
+      {
+        "command": "claudeswitch.refreshUsage",
+        "title": "Refresh Usage",
+        "category": "ClaudeSwitch",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "claudeswitch.toggleAutoSwitch",
+        "title": "Toggle Automatic Switching",
+        "category": "ClaudeSwitch",
+        "icon": "$(sync)"
+      },
+      {
+        "command": "claudeswitch.renameAccount",
+        "title": "Rename Account…",
+        "category": "ClaudeSwitch"
+      },
+      {
+        "command": "claudeswitch.toggleAccountEnabled",
+        "title": "Include/Exclude Account from Rotation…",
+        "category": "ClaudeSwitch"
+      },
+      {
+        "command": "claudeswitch.moveAccountUp",
+        "title": "Move Up (Higher Priority)",
+        "category": "ClaudeSwitch",
+        "icon": "$(arrow-up)"
+      },
+      {
+        "command": "claudeswitch.moveAccountDown",
+        "title": "Move Down (Lower Priority)",
+        "category": "ClaudeSwitch",
+        "icon": "$(arrow-down)"
+      },
+      {
+        "command": "claudeswitch.removeAccount",
+        "title": "Remove from ClaudeSwitch",
+        "category": "ClaudeSwitch",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "claudeswitch.showLog",
+        "title": "Show Log",
+        "category": "ClaudeSwitch",
+        "icon": "$(output)"
+      },
+      {
+        "command": "claudeswitch.openSettings",
+        "title": "Open Settings",
+        "category": "ClaudeSwitch",
+        "icon": "$(gear)"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "claudeswitch",
+          "title": "ClaudeSwitch",
+          "icon": "media/claudeswitch.svg"
+        }
+      ]
+    },
+    "views": {
+      "claudeswitch": [
+        {
+          "id": "claudeswitch.accounts",
+          "name": "Claude Accounts"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "claudeswitch.accounts",
+        "contents": "Add the Claude accounts you want ClaudeSwitch to rotate between. Each one opens the Claude sign-in page in your browser.\n[Add Claude Account](command:claudeswitch.addAccount)\nAlready signed in to Claude Code? [Add that login](command:claudeswitch.addCurrentAccount) without signing in again."
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "claudeswitch.addAccount",
+          "when": "view == claudeswitch.accounts",
+          "group": "navigation@1"
+        },
+        {
+          "command": "claudeswitch.refreshUsage",
+          "when": "view == claudeswitch.accounts",
+          "group": "navigation@2"
+        },
+        {
+          "command": "claudeswitch.switchToBest",
+          "when": "view == claudeswitch.accounts",
+          "group": "navigation@3"
+        },
+        {
+          "command": "claudeswitch.addCurrentAccount",
+          "when": "view == claudeswitch.accounts",
+          "group": "more@1"
+        },
+        {
+          "command": "claudeswitch.toggleAutoSwitch",
+          "when": "view == claudeswitch.accounts",
+          "group": "more@2"
+        },
+        {
+          "command": "claudeswitch.showLog",
+          "when": "view == claudeswitch.accounts",
+          "group": "more@3"
+        },
+        {
+          "command": "claudeswitch.openSettings",
+          "when": "view == claudeswitch.accounts",
+          "group": "more@4"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "claudeswitch.signInAgain",
+          "when": "view == claudeswitch.accounts && viewItem =~ /:reauth/",
+          "group": "inline@0"
+        },
+        {
+          "command": "claudeswitch.signInAgain",
+          "when": "view == claudeswitch.accounts && viewItem =~ /^account:/",
+          "group": "1_switch@2"
+        },
+        {
+          "command": "claudeswitch.switchAccount",
+          "when": "view == claudeswitch.accounts && viewItem =~ /^account:inactive/",
+          "group": "inline@1"
+        },
+        {
+          "command": "claudeswitch.switchAccount",
+          "when": "view == claudeswitch.accounts && viewItem =~ /^account:inactive/",
+          "group": "1_switch@1"
+        },
+        {
+          "command": "claudeswitch.renameAccount",
+          "when": "view == claudeswitch.accounts && viewItem =~ /^account:/",
+          "group": "2_edit@1"
+        },
+        {
+          "command": "claudeswitch.toggleAccountEnabled",
+          "when": "view == claudeswitch.accounts && viewItem =~ /^account:/",
+          "group": "2_edit@2"
+        },
+        {
+          "command": "claudeswitch.moveAccountUp",
+          "when": "view == claudeswitch.accounts && viewItem =~ /^account:/",
+          "group": "3_order@1"
+        },
+        {
+          "command": "claudeswitch.moveAccountDown",
+          "when": "view == claudeswitch.accounts && viewItem =~ /^account:/",
+          "group": "3_order@2"
+        },
+        {
+          "command": "claudeswitch.removeAccount",
+          "when": "view == claudeswitch.accounts && viewItem =~ /^account:/",
+          "group": "4_remove@1"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "claudeswitch.moveAccountUp",
+          "when": "false"
+        },
+        {
+          "command": "claudeswitch.moveAccountDown",
+          "when": "false"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "ClaudeSwitch",
+      "properties": {
+        "claudeswitch.autoSwitch": {
+          "type": "boolean",
+          "default": true,
+          "order": 0,
+          "description": "Switch the active Claude Code account automatically when it reaches its limit (and, depending on the strategy, to use capacity that would otherwise expire)."
+        },
+        "claudeswitch.strategy": {
+          "type": "string",
+          "default": "efficient",
+          "order": 1,
+          "enum": [
+            "efficient",
+            "balanced",
+            "sequential",
+            "manual"
+          ],
+          "enumDescriptions": [
+            "Use the account whose weekly limit resets soonest, so its remaining capacity isn't lost at reset. Stays on an account until it's nearly exhausted, and switches early only when another account is about to lose a lot of unused capacity.",
+            "Keep every account at a similar weekly usage level. Switches when the active account is ahead of the least-used one by the balance margin.",
+            "Use accounts in the order listed. Moves to the next one when the current one is exhausted and returns to a higher-priority account once it resets.",
+            "Never switch automatically. Only show usage and tell you when the active account is exhausted."
+          ],
+          "description": "How ClaudeSwitch chooses which account to use."
+        },
+        "claudeswitch.switchThreshold": {
+          "type": "number",
+          "default": 95,
+          "minimum": 50,
+          "maximum": 100,
+          "order": 2,
+          "description": "Usage percentage (of any limit window) at which an account counts as exhausted and ClaudeSwitch moves off it."
+        },
+        "claudeswitch.warnThreshold": {
+          "type": "number",
+          "default": 80,
+          "minimum": 0,
+          "maximum": 100,
+          "order": 3,
+          "description": "Usage percentage at which the status bar turns to a warning color."
+        },
+        "claudeswitch.proactiveSwitching": {
+          "type": "boolean",
+          "default": true,
+          "order": 4,
+          "description": "Efficient strategy only: switch before the active account is exhausted when another account has a lot of weekly capacity that will expire soon."
+        },
+        "claudeswitch.proactiveHorizonHours": {
+          "type": "number",
+          "default": 24,
+          "minimum": 1,
+          "maximum": 168,
+          "order": 5,
+          "description": "Efficient strategy: only switch early to an account whose weekly limit resets within this many hours."
+        },
+        "claudeswitch.proactiveMinHeadroom": {
+          "type": "number",
+          "default": 25,
+          "minimum": 5,
+          "maximum": 100,
+          "order": 6,
+          "description": "Efficient strategy: only switch early when the other account has at least this many percentage points of weekly limit left."
+        },
+        "claudeswitch.balanceMargin": {
+          "type": "number",
+          "default": 20,
+          "minimum": 5,
+          "maximum": 90,
+          "order": 7,
+          "description": "Balanced strategy: switch when the active account's weekly usage exceeds the least-used account's by this many percentage points."
+        },
+        "claudeswitch.minMinutesBetweenSwitches": {
+          "type": "number",
+          "default": 30,
+          "minimum": 0,
+          "order": 8,
+          "description": "Minimum time between switches that aren't forced by an exhausted account. Each switch makes the next request re-send your conversation without the prompt cache, so frequent switching wastes usage."
+        },
+        "claudeswitch.pollIntervalSeconds": {
+          "type": "number",
+          "default": 120,
+          "minimum": 30,
+          "order": 9,
+          "description": "How often to check the active account's usage."
+        },
+        "claudeswitch.inactivePollMinutes": {
+          "type": "number",
+          "default": 15,
+          "minimum": 2,
+          "order": 10,
+          "description": "How often to check the usage of accounts that aren't active. Their usage can still change if you use them on claude.ai or another machine."
+        },
+        "claudeswitch.refreshInactiveTokens": {
+          "type": "boolean",
+          "default": true,
+          "order": 11,
+          "description": "Refresh sign-in tokens of inactive accounts so their usage can be checked and they stay signed in. The active account's token is always left to Claude Code."
+        },
+        "claudeswitch.watchTranscripts": {
+          "type": "boolean",
+          "default": true,
+          "order": 12,
+          "description": "Watch Claude Code session transcripts for usage-limit errors so a switch happens immediately instead of at the next usage check."
+        },
+        "claudeswitch.autoAddNewLogins": {
+          "type": "boolean",
+          "default": true,
+          "order": 13,
+          "description": "When you log in to a new account with Claude Code, add it to ClaudeSwitch automatically."
+        },
+        "claudeswitch.notifyOnSwitch": {
+          "type": "boolean",
+          "default": true,
+          "order": 14,
+          "description": "Show a notification whenever ClaudeSwitch switches accounts."
+        },
+        "claudeswitch.claudeConfigDir": {
+          "type": "string",
+          "default": "",
+          "order": 15,
+          "description": "Claude Code configuration directory. Leave empty to use CLAUDE_CONFIG_DIR, or ~/.claude if that isn't set."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p .",
+    "watch": "tsc -watch -p .",
+    "test": "tsc -p . && node --test out/test/*.test.js",
+    "package": "tsc -p . && vsce package --skip-license",
+    "vscode:prepublish": "tsc -p ."
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/vscode": "^1.90.0",
+    "@vscode/vsce": "^3.2.0",
+    "typescript": "^5.6.0"
+  }
+}
