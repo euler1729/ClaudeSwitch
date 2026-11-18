@@ -71,11 +71,25 @@ export function run(cmd: string, args: string[], input?: string): Promise<string
   });
 }
 
+/**
+ * Longest command line `security -i` reads in one piece. It splits a longer line and still runs
+ * the first part, which overwrites the Keychain item with a truncated value.
+ */
+export const SECURITY_MAX_LINE = 4095;
+
 /** `security -i` command that stores the credentials, read from stdin. Exported for tests. */
 export function keychainWriteCommand(p: ClaudePaths, json: string): string {
   const hex = Buffer.from(json, 'utf8').toString('hex');
   // Account and service names are restricted to safe characters in resolvePaths.
-  return `add-generic-password -U -a "${p.keychainAccount}" -s "${p.keychainService}" -X "${hex}"\n`;
+  const line = `add-generic-password -U -a "${p.keychainAccount}" -s "${p.keychainService}" -X "${hex}"`;
+  if (line.length > SECURITY_MAX_LINE) {
+    const limit = Math.floor((SECURITY_MAX_LINE - (line.length - hex.length)) / 2);
+    throw new Error(
+      `This login is too large to store in the macOS Keychain (${Buffer.byteLength(json, 'utf8')} bytes; the limit is ${limit}). ` +
+        "Claude Code's current login was not changed.",
+    );
+  }
+  return `${line}\n`;
 }
 
 function parseBlob(text: string): CredentialsBlob | undefined {
@@ -114,7 +128,8 @@ export async function writeCredentials(p: ClaudePaths, blob: CredentialsBlob): P
   const json = JSON.stringify(blob);
   if (p.useKeychain) {
     // Send the command on stdin (as Claude Code does) so the secret never appears in the
-    // process list, where other local users could read it.
+    // process list, where other local users could read it. Throws before running `security`
+    // when the login is too large to pass this way.
     await run('security', ['-i'], keychainWriteCommand(p, json));
     // Keep any file copy in step so a stale file login can't win.
     if (fs.existsSync(p.credentialsFile)) {

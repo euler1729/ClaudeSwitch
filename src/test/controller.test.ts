@@ -4,12 +4,15 @@ import * as fs from 'fs';
 import * as http from 'http';
 import * as os from 'os';
 import * as path from 'path';
+import { spawnSync } from 'child_process';
 import Module = require('module');
+import { keychainWriteCommand, resolvePaths } from '../claude';
 import * as stub from './vscodeStub';
 
 /*
  * End-to-end run of the Controller against a throwaway Claude config directory and a fake
- * Anthropic API. Never touches the real ~/.claude.
+ * Anthropic API. Never touches the real ~/.claude. On macOS the login lives in a throwaway
+ * Keychain item ("Claude Code-credentials-<hash of that directory>"), never the real one.
  */
 
 // Route `require('vscode')` to the stub.
@@ -132,17 +135,37 @@ async function until(cond: () => boolean, ms = 3000) {
   }
 }
 
-test('add, rotate, switch, auto-switch and protect unmanaged logins', { skip: process.platform === 'darwin' }, async () => {
+test('add, rotate, switch, auto-switch and protect unmanaged logins', async () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'claudeswitch-test-'));
   const configDir = path.join(tmp, 'claude');
   fs.mkdirSync(configDir);
-  const credFile = path.join(configDir, '.credentials.json');
+  const paths = resolvePaths(configDir);
+  assert.notEqual(paths.keychainService, 'Claude Code-credentials');
+  const credFile = paths.credentialsFile;
   const globalFile = path.join(configDir, '.claude.json');
-  const readCreds = () => JSON.parse(fs.readFileSync(credFile, 'utf8'));
+  // Plays Claude Code writing and reading its credential store.
+  const security = (args: string[], input?: string) => {
+    const r = spawnSync('security', args, { input, encoding: 'utf8' });
+    if (r.status !== 0) {
+      throw new Error(`security ${args[0]} failed: ${r.stderr}`);
+    }
+    return r.stdout.trim();
+  };
+  const storeLogin = (blob: unknown) =>
+    paths.useKeychain
+      ? security(['-i'], keychainWriteCommand(paths, JSON.stringify(blob)))
+      : fs.writeFileSync(credFile, JSON.stringify(blob));
+  const readCreds = () => {
+    if (!paths.useKeychain) {
+      return JSON.parse(fs.readFileSync(credFile, 'utf8'));
+    }
+    const out = security(['find-generic-password', '-a', paths.keychainAccount, '-w', '-s', paths.keychainService]);
+    return JSON.parse(/^[0-9a-f]+$/i.test(out) ? Buffer.from(out, 'hex').toString('utf8') : out);
+  };
   const readGlobal = () => JSON.parse(fs.readFileSync(globalFile, 'utf8'));
   const login = (key: string, expiresInMs?: number) => {
     const blob = issue(key, expiresInMs);
-    fs.writeFileSync(credFile, JSON.stringify(blob));
+    storeLogin(blob);
     const g = fs.existsSync(globalFile) ? readGlobal() : { numStartups: 7 };
     g.oauthAccount = { accountUuid: accounts[key].uuid, emailAddress: accounts[key].email, organizationUuid: accounts[key].org };
     fs.writeFileSync(globalFile, JSON.stringify(g, null, 2));
@@ -191,7 +214,7 @@ test('add, rotate, switch, auto-switch and protect unmanaged logins', { skip: pr
 
     // 3. Claude Code rotates B's tokens; ClaudeSwitch keeps its copy current.
     const rotated = issue('b');
-    fs.writeFileSync(credFile, JSON.stringify(rotated));
+    storeLogin(rotated);
     await c.syncActive();
     assert.equal(vaultGet('ub:ob').claudeAiOauth.refreshToken, rotated.claudeAiOauth.refreshToken);
 
@@ -208,7 +231,11 @@ test('add, rotate, switch, auto-switch and protect unmanaged logins', { skip: pr
     assert.ok(live.claudeAiOauth.expiresAt > Date.now());
     assert.equal(readGlobal().oauthAccount.emailAddress, 'a@example.com');
     assert.equal(readGlobal().numStartups, 7, 'other keys in .claude.json are preserved');
-    assert.equal((fs.statSync(credFile).mode & 0o777).toString(8), '600');
+    if (paths.useKeychain) {
+      assert.equal(fs.existsSync(credFile), false, 'no plaintext credentials file on macOS');
+    } else {
+      assert.equal((fs.statSync(credFile).mode & 0o777).toString(8), '600');
+    }
     assert.equal(c.state.current.lastSwitch?.to, 'ua:oa');
 
     // 5. A hits its session limit -> the leader switches to B on its own.
@@ -258,12 +285,29 @@ test('add, rotate, switch, auto-switch and protect unmanaged logins', { skip: pr
     assert.equal(accessTokens.get(readCreds().claudeAiOauth.accessToken), 'c');
     assert.equal(await c.switchTo('ub:ob', 'manual', { automatic: false, overwriteUnmanaged: true }), true);
     assert.equal(accessTokens.get(readCreds().claudeAiOauth.accessToken), 'b');
+
+    // 10. A large stored login (Claude Code keeps MCP server tokens in the same store). macOS can't
+    //     take it through `security -i`, so the switch is refused and the live login stays intact.
+    const bigA = vaultGet('ua:oa');
+    bigA.mcpOAuth = { 'server|1': { accessToken: 'm'.repeat(3000) } };
+    await secrets.store('claudeswitch.credentials.ua:oa', JSON.stringify(bigA));
+    if (paths.useKeychain) {
+      await assert.rejects(c.switchTo('ua:oa', 'manual', { automatic: false }), /too large/);
+      assert.equal(accessTokens.get(readCreds().claudeAiOauth.accessToken), 'b', 'live login left intact');
+      assert.equal(c.state.current.activeId, 'ub:ob');
+    } else {
+      assert.equal(await c.switchTo('ua:oa', 'manual', { automatic: false }), true);
+      assert.equal(readCreds().mcpOAuth['server|1'].accessToken.length, 3000, 'stored in full');
+    }
   } catch (err) {
     console.error(logs.join('\n'));
     throw err;
   } finally {
     c.dispose();
     await sleep(50);
+    if (paths.useKeychain) {
+      spawnSync('security', ['delete-generic-password', '-a', paths.keychainAccount, '-s', paths.keychainService]);
+    }
     fs.rmSync(tmp, { recursive: true, force: true });
   }
 });
