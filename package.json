@@ -2,7 +2,12 @@
   "name": "claudeswitch",
   "displayName": "ClaudeSwitch — Claude Account Switcher",
   "description": "Automatically switches Claude Code accounts when one hits its usage limit, and spreads usage across accounts so no capacity goes to waste.",
-  "version": "0.2.0",
+  "icon": "media/icon.png",
+  "galleryBanner": {
+    "color": "#D77757",
+    "theme": "dark"
+  },
+  "version": "0.2.1",
   "publisher": "claudeswitch",
   "repository": {
     "type": "git",

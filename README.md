@@ -1,3 +1,5 @@
+<p align="center"><img src="media/icon.png" width="112" alt="ClaudeSwitch logo"></p>
+
 # ClaudeSwitch — Claude Account Switcher for VS Code
 
 ClaudeSwitch manages several Claude Code accounts. When the active account hits its usage limit, ClaudeSwitch moves Claude Code to another account automatically. It also chooses which account to use so that as little of each account's allowance as possible goes unused.

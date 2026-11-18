@@ -7,3 +7,5 @@ tsconfig.json
 **/*.ts
 .cc-history/**
 package-lock.json
+media/icon.svg
+.github/**
