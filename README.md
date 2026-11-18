@@ -94,6 +94,13 @@ npm run package   # builds claudeswitch-0.2.0.vsix
 
 The integration test runs the real controller against a temporary Claude config folder and a fake API server. That includes the browser sign-in, with a simulated browser visiting the callback. It never touches your `~/.claude`.
 
+### Releasing
+
+1. Update `version` in `package.json`, and add a matching `## <version>` section at the top of `CHANGELOG.md`.
+2. Commit, then tag and push: `git tag v<version> && git push origin main v<version>`.
+
+The Release workflow runs the tests, builds the `.vsix`, and publishes a GitHub release. The notes come from that version's CHANGELOG section, and the release includes install steps and SHA-256 checksums.
+
 | File | Role |
 |---|---|
 | `src/strategy.ts` | Chooses which account to use. Pure functions, unit-tested. |

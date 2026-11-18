@@ -1,0 +1,49 @@
+name: Release
+
+# Push a tag like v0.2.1 (matching package.json) to build, test and publish a GitHub release.
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Check the tag matches package.json
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          if [ "v${version}" != "${GITHUB_REF_NAME}" ]; then
+            echo "::error::Tag ${GITHUB_REF_NAME} doesn't match package.json version ${version}"
+            exit 1
+          fi
+
+      - run: npm test
+
+      - name: Package the extension
+        run: |
+          npm run package
+          sha256sum claudeswitch-*.vsix > SHA256SUMS.txt
+
+      - name: Write release notes
+        run: node .github/scripts/release-notes.js "${GITHUB_REF_NAME#v}" > release-notes.md
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" claudeswitch-*.vsix SHA256SUMS.txt \
+            --title "ClaudeSwitch ${GITHUB_REF_NAME}" \
+            --notes-file release-notes.md \
+            --verify-tag
