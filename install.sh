@@ -8,10 +8,10 @@
 set -euo pipefail
 
 REPO="euler1729/ClaudeSwitch"
-EXTENSION_ID="CSAI.claudeswitch"
-# Releases up to 0.2.3 were published as claudeswitch.claudeswitch. VS Code sees that as a separate
-# extension, so it's removed once the new one is installed.
-OLD_EXTENSION_ID="claudeswitch.claudeswitch"
+EXTENSION_ID="euler1729.claudeswitch"
+# Earlier releases were published as claudeswitch.claudeswitch (up to 0.2.3) and CSAI.claudeswitch
+# (0.2.4). VS Code sees those as separate extensions, so they're removed once this one is installed.
+OLD_EXTENSION_IDS="claudeswitch.claudeswitch CSAI.claudeswitch"
 DOWNLOAD="https://github.com/${REPO}/releases/latest/download"
 
 fail() {
@@ -69,10 +69,16 @@ main() {
   local version="${file#claudeswitch-}"
   version="${version%.vsix}"
 
-  local extensions installed old
+  local extensions installed old="" old_ids="" id v
   extensions="$("$code" --list-extensions --show-versions 2>/dev/null || true)"
   installed="$(printf '%s\n' "$extensions" | grep -i "^${EXTENSION_ID}@" | cut -d@ -f2 || true)"
-  old="$(printf '%s\n' "$extensions" | grep -i "^${OLD_EXTENSION_ID}@" | cut -d@ -f2 || true)"
+  for id in $OLD_EXTENSION_IDS; do
+    v="$(printf '%s\n' "$extensions" | grep -i "^${id}@" | cut -d@ -f2 || true)"
+    if [ -n "$v" ]; then
+      old="$v"
+      old_ids="$old_ids $id"
+    fi
+  done
 
   printf 'Downloading ClaudeSwitch %s…\n' "$version"
   curl -fsSL "${DOWNLOAD}/${file}" -o "$tmp/$file" || fail "couldn't download $file."
@@ -84,10 +90,10 @@ main() {
     cat "$tmp/install.log" >&2
     fail "VS Code couldn't install $file."
   fi
-  if [ -n "$old" ]; then
-    "$code" --uninstall-extension "$OLD_EXTENSION_ID" >"$tmp/uninstall.log" 2>&1 ||
-      printf "ClaudeSwitch: couldn't remove the old copy (%s). Uninstall it from the Extensions view.\n" "$OLD_EXTENSION_ID" >&2
-  fi
+  for id in $old_ids; do
+    "$code" --uninstall-extension "$id" >"$tmp/uninstall.log" 2>&1 ||
+      printf "ClaudeSwitch: couldn't remove the old copy (%s). Uninstall it from the Extensions view.\n" "$id" >&2
+  done
 
   if [ -z "$installed" ] && [ -n "$old" ]; then
     printf 'Updated ClaudeSwitch from %s to %s and removed the old copy.\n' "$old" "$version"

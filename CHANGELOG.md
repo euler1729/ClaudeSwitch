@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.5 — 2026-11-18
+
+### Changed
+
+- ClaudeSwitch is now published as **euler1729**, the publisher it's listed under on the Visual Studio Marketplace, so its extension ID is `euler1729.claudeswitch`. VS Code treats this as a new extension, so **accounts saved in earlier versions don't carry over**: after updating, add them again from the ClaudeSwitch view. It offers to add the login Claude Code is currently using.
+- The install command removes the older copies (`claudeswitch.claudeswitch` and `CSAI.claudeswitch`) for you. If you installed by hand, uninstall the old ClaudeSwitch from the Extensions view so the copies don't clash.
+
 ## 0.2.4 — 2026-11-18
 
 ### Changed
