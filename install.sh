@@ -8,7 +8,10 @@
 set -euo pipefail
 
 REPO="euler1729/ClaudeSwitch"
-EXTENSION_ID="claudeswitch.claudeswitch"
+EXTENSION_ID="CSAI.claudeswitch"
+# Releases up to 0.2.3 were published as claudeswitch.claudeswitch. VS Code sees that as a separate
+# extension, so it's removed once the new one is installed.
+OLD_EXTENSION_ID="claudeswitch.claudeswitch"
 DOWNLOAD="https://github.com/${REPO}/releases/latest/download"
 
 fail() {
@@ -66,8 +69,10 @@ main() {
   local version="${file#claudeswitch-}"
   version="${version%.vsix}"
 
-  local installed
-  installed="$("$code" --list-extensions --show-versions 2>/dev/null | grep -i "^${EXTENSION_ID}@" | cut -d@ -f2 || true)"
+  local extensions installed old
+  extensions="$("$code" --list-extensions --show-versions 2>/dev/null || true)"
+  installed="$(printf '%s\n' "$extensions" | grep -i "^${EXTENSION_ID}@" | cut -d@ -f2 || true)"
+  old="$(printf '%s\n' "$extensions" | grep -i "^${OLD_EXTENSION_ID}@" | cut -d@ -f2 || true)"
 
   printf 'Downloading ClaudeSwitch %s…\n' "$version"
   curl -fsSL "${DOWNLOAD}/${file}" -o "$tmp/$file" || fail "couldn't download $file."
@@ -79,7 +84,15 @@ main() {
     cat "$tmp/install.log" >&2
     fail "VS Code couldn't install $file."
   fi
-  if [ -z "$installed" ]; then
+  if [ -n "$old" ]; then
+    "$code" --uninstall-extension "$OLD_EXTENSION_ID" >"$tmp/uninstall.log" 2>&1 ||
+      printf "ClaudeSwitch: couldn't remove the old copy (%s). Uninstall it from the Extensions view.\n" "$OLD_EXTENSION_ID" >&2
+  fi
+
+  if [ -z "$installed" ] && [ -n "$old" ]; then
+    printf 'Updated ClaudeSwitch from %s to %s and removed the old copy.\n' "$old" "$version"
+    printf "The extension has a new publisher, so saved accounts don't carry over: add them again from the ClaudeSwitch view.\n"
+  elif [ -z "$installed" ]; then
     printf 'Installed ClaudeSwitch %s.\n' "$version"
   elif [ "$installed" = "$version" ]; then
     printf 'Reinstalled ClaudeSwitch %s, the latest version.\n' "$version"

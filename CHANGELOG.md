@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.4 — 2026-11-18
+
+### Changed
+
+- ClaudeSwitch is now published by **CSAI**, so its extension ID changes from `claudeswitch.claudeswitch` to `CSAI.claudeswitch`. VS Code treats this as a new extension, so **accounts saved in earlier versions don't carry over**: after updating, add them again from the ClaudeSwitch view. It offers to add the login Claude Code is currently using.
+- The install command removes the old `claudeswitch.claudeswitch` copy for you. If you installed by hand, uninstall the old ClaudeSwitch from the Extensions view so the two copies don't clash.
+
 ## 0.2.3 — 2026-11-18
 
 ### Changed
